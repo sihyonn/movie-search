@@ -1,30 +1,28 @@
 import { Component } from "./core/sihyonn";
 
-// 가져온 컴포넌트 확장하는 개념으로 상속해서 사용
 export default class App extends Component {
   constructor() {
     super({
       state: {
-        inputText: "",
+        fruits: [
+          { name: "a", price: 1000 },
+          { name: "b", price: 2000 },
+          { name: "c", price: 3000 },
+        ],
       },
     });
   }
   render() {
-    this.el.classList.add("search");
-    this.el.innerHTML = /*html*/ `
-      <input />
-      <button>Click!</button>
+    console.log(this.state.fruits);
+
+    this.el.innerHTML = /*html */ `
+    <h1>Fruits</h1>
+    <ul>
+      ${this.state.fruits
+        .filter((fruit) => fruit.price < 3000)
+        .map((fruit) => `<li>${fruit.name}</li>`)
+        .join(" ")}
+    </ul>
     `;
-
-    const inputEl = this.el.querySelector("input");
-    // 입력이 들어오면 그 값을 저장
-    inputEl.addEventListener("input", () => {
-      this.state.inputText = inputEl.value;
-    });
-
-    const buttonEl = this.el.querySelector("button");
-    buttonEl.addEventListener("click", () => {
-      console.log(this.state.inputText);
-    });
   }
 }
