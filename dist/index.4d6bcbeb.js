@@ -585,8 +585,28 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _sihyonn = require("./core/sihyonn");
 class App extends (0, _sihyonn.Component) {
+    constructor(){
+        super({
+            state: {
+                inputText: ""
+            }
+        });
+    }
     render() {
-        this.el.textContent = "Hello, world!";
+        this.el.classList.add("search");
+        this.el.innerHTML = /*html*/ `
+      <input />
+      <button>Click!</button>
+    `;
+        const inputEl = this.el.querySelector("input");
+        // 입력이 들어오면 그 값을 저장
+        inputEl.addEventListener("input", ()=>{
+            this.state.inputText = inputEl.value;
+        });
+        const buttonEl = this.el.querySelector("button");
+        buttonEl.addEventListener("click", ()=>{
+            console.log(this.state.inputText);
+        });
     }
 }
 exports.default = App;
@@ -629,8 +649,9 @@ parcelHelpers.export(exports, "Component", ()=>Component);
 class Component {
     constructor(payload = {}){
         // 항상 div가 들어오는게 아니기 때문에 구조분해할당으로 내가 원하는 태그를 넣겠다
-        const { tagName = "div" } = payload;
+        const { tagName = "div", state = {} } = payload;
         this.el = document.createElement(tagName);
+        this.state = state;
         this.render();
     }
     render() {
