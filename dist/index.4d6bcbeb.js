@@ -577,47 +577,100 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _app = require("./App");
 var _appDefault = parcelHelpers.interopDefault(_app);
+var _routes = require("./routes");
+var _routesDefault = parcelHelpers.interopDefault(_routes);
 const root = document.querySelector("#root");
 root.append(new (0, _appDefault.default)().el);
+(0, _routesDefault.default)();
 
-},{"./App":"2kQhy","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2kQhy":[function(require,module,exports) {
+},{"./App":"2kQhy","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./routes":"3L9mC"}],"2kQhy":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _sihyonn = require("./core/sihyonn");
+var _theHeader = require("./components/TheHeader");
+var _theHeaderDefault = parcelHelpers.interopDefault(_theHeader);
 class App extends (0, _sihyonn.Component) {
-    constructor(){
-        super({
-            state: {
-                fruits: [
-                    {
-                        name: "a",
-                        price: 1000
-                    },
-                    {
-                        name: "b",
-                        price: 2000
-                    },
-                    {
-                        name: "c",
-                        price: 3000
-                    }
-                ]
-            }
-        });
-    }
     render() {
-        console.log(this.state.fruits);
-        this.el.innerHTML = /*html */ `
-    <h1>Fruits</h1>
-    <ul>
-      ${this.state.fruits.filter((fruit)=>fruit.price < 3000).map((fruit)=>`<li>${fruit.name}</li>`).join(" ")}
-    </ul>
-    `;
+        const routerView = document.createElement("router-view");
+        this.el.append(new (0, _theHeaderDefault.default)().el, routerView);
     }
 }
 exports.default = App;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./core/sihyonn":"2RWRY"}],"gkKU3":[function(require,module,exports) {
+},{"./core/sihyonn":"2RWRY","./components/TheHeader":"3Cyq4","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2RWRY":[function(require,module,exports) {
+/// Component ///
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Component", ()=>Component);
+parcelHelpers.export(exports, "createRouter", ()=>createRouter);
+/// Store ///
+parcelHelpers.export(exports, "Store", ()=>Store);
+class Component {
+    constructor(payload = {}){
+        // 항상 div가 들어오는게 아니기 때문에 구조분해할당으로 내가 원하는 태그를 넣겠다
+        const { tagName = "div", state = {}, props = {} } = payload;
+        this.el = document.createElement(tagName);
+        this.state = state;
+        this.props = props;
+        this.render();
+    }
+    render() {
+    /// ...일단 비워줌 확장해서 사용할때 사용할거
+    }
+}
+/// Router ///
+function routeRender(routes) {
+    if (!location.hash) history.replaceState(null, "", "/#/");
+    const routerView = document.querySelector("router-view");
+    // 물음표 기준으로 왼 오 내용 구분해서 배열로 만들 수 있음
+    // #/about이 0번째 ? 다음 name=sihyonn이 1번째
+    const [hash, queryString = ""] = location.hash.split("?");
+    // a=123&b=456
+    // ['a=123', 'b=456']
+    // {a : '123', b: '456'} => 요게 최종만들어진 query
+    const query = queryString.split("&").reduce((acc, cur)=>{
+        const [key, value] = cur.split("=");
+        acc[key] = value;
+        return acc;
+    }, {});
+    history.replaceState(query, ""); // 두번째 주소부분은 생략가능
+    const currentRoute = routes.find((route)=>new RegExp(`${route.path}/?$`).test(hash));
+    routerView.innerHTML = "";
+    routerView.append(new currentRoute.component().el);
+    window.scrollTo(0, 0);
+}
+function createRouter(routes) {
+    return function() {
+        window.addEventListener("popstate", ()=>{
+            routeRender(routes);
+        });
+        routeRender(routes);
+    };
+}
+class Store {
+    constructor(state){
+        this.state = {};
+        this.observers = {};
+        for(const key in state)Object.defineProperty(this.state, key, {
+            get: ()=>state[key],
+            set: (val)=>{
+                state[key] = val;
+                // 각각의 콜백을 이제는 배열데이터가 들어오니까 forEach로 수행해주게 변경
+                this.observers[key].forEach((observer)=>observer(val));
+            }
+        });
+    }
+    // 어떤 데이터의 이름을 감시하고 데이터가변경되면 어떤 함수를 실행할건지 => set 함수가 동작하면 데이터가 변경 된거니까
+    // this.observer[key]() 호출하는거지
+    // 고도화는 삼항연산자, Array.isArray()로 배열인지 아닌지 확인해서 배열이면 push 사용되니까 콜백을 넣어주고, 아니면 콜백자체를 배열에 담아
+    subscribe(key, cb) {
+        Array.isArray(this.observers[key]) ? this.observers[key].push(cb) : this.observers[key] = [
+            cb
+        ];
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
 exports.interopDefault = function(a) {
     return a && a.__esModule ? a : {
         default: a
@@ -647,24 +700,152 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}],"2RWRY":[function(require,module,exports) {
-/// Component ///
+},{}],"3Cyq4":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "Component", ()=>Component);
-class Component {
-    constructor(payload = {}){
-        // 항상 div가 들어오는게 아니기 때문에 구조분해할당으로 내가 원하는 태그를 넣겠다
-        const { tagName = "div", state = {} } = payload;
-        this.el = document.createElement(tagName);
-        this.state = state;
-        this.render();
+var _sihyonn = require("../core/sihyonn");
+class TheHeader extends (0, _sihyonn.Component) {
+    constructor(){
+        super({
+            tagName: "header"
+        });
     }
     render() {
-    /// ...일단 비워줌 확장해서 사용할때 사용할거
+        this.el.innerHTML = /* HTML*/ `
+    <a href="#/">Main!</a>
+    <a href="#/about">About!</a>
+    `;
     }
 }
+exports.default = TheHeader;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["f3BSW","gLLPy"], "gLLPy", "parcelRequirea7d1")
+},{"../core/sihyonn":"2RWRY","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"3L9mC":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _sihyonnJs = require("../core/sihyonn.js");
+var _home = require("./Home");
+var _homeDefault = parcelHelpers.interopDefault(_home);
+var _about = require("./About");
+var _aboutDefault = parcelHelpers.interopDefault(_about);
+exports.default = (0, _sihyonnJs.createRouter)([
+    {
+        path: "#/",
+        component: (0, _homeDefault.default)
+    },
+    {
+        path: "#/about",
+        component: (0, _aboutDefault.default)
+    }
+]);
+
+},{"./Home":"0JSNG","./About":"gdB30","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../core/sihyonn.js":"2RWRY"}],"0JSNG":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _sihyonn = require("../core/sihyonn");
+var _textField = require("../components/TextField");
+var _textFieldDefault = parcelHelpers.interopDefault(_textField);
+var _message = require("../components/Message");
+var _messageDefault = parcelHelpers.interopDefault(_message);
+var _title = require("../components/Title");
+var _titleDefault = parcelHelpers.interopDefault(_title);
+class Home extends (0, _sihyonn.Component) {
+    render() {
+        this.el.innerHTML = /* html */ `
+    <h1>Home Page! </h1>
+    `;
+        this.el.append(new (0, _textFieldDefault.default)().el, new (0, _messageDefault.default)().el, new (0, _titleDefault.default)().el);
+    }
+}
+exports.default = Home;
+
+},{"../core/sihyonn":"2RWRY","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../components/TextField":"e6IWT","../components/Message":"i84kQ","../components/Title":"6wotK"}],"e6IWT":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _sihyonn = require("../core/sihyonn");
+var _message = require("../store/message");
+var _messageDefault = parcelHelpers.interopDefault(_message);
+class TextField extends (0, _sihyonn.Component) {
+    render() {
+        this.el.innerHTML = /*html*/ `
+      <input value="${(0, _messageDefault.default).state.message}" />
+    `;
+        const inputEl = this.el.querySelector("input");
+        inputEl.addEventListener("input", ()=>{
+            (0, _messageDefault.default).state.message = inputEl.value;
+        });
+    }
+}
+exports.default = TextField;
+
+},{"../core/sihyonn":"2RWRY","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../store/message":"4gYOO"}],"4gYOO":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _sihyonn = require("../core/sihyonn");
+exports.default = new (0, _sihyonn.Store)({
+    message: "hello~"
+});
+
+},{"../core/sihyonn":"2RWRY","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"i84kQ":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _sihyonn = require("../core/sihyonn");
+var _message = require("../store/message");
+var _messageDefault = parcelHelpers.interopDefault(_message);
+class Message extends (0, _sihyonn.Component) {
+    constructor(){
+        super();
+        (0, _messageDefault.default).subscribe("message", ()=>{
+            this.render();
+        });
+    }
+    render() {
+        this.el.innerHTML = /*html*/ `
+      <h2>${(0, _messageDefault.default).state.message}</h2>
+    
+    `;
+    }
+}
+exports.default = Message;
+
+},{"../core/sihyonn":"2RWRY","../store/message":"4gYOO","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"6wotK":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _sihyonn = require("../core/sihyonn");
+var _message = require("../store/message");
+var _messageDefault = parcelHelpers.interopDefault(_message);
+class Title extends (0, _sihyonn.Component) {
+    constructor(){
+        super({
+            tagName: "h1"
+        });
+        (0, _messageDefault.default).subscribe("message", (newVal)=>{
+            console.log("뉴발루", newVal);
+            this.render();
+        });
+    }
+    render() {
+        this.el.textContent = `Title ${(0, _messageDefault.default).state.message}`;
+    }
+}
+exports.default = Title;
+
+},{"../core/sihyonn":"2RWRY","../store/message":"4gYOO","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gdB30":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _sihyonn = require("../core/sihyonn");
+class Home extends (0, _sihyonn.Component) {
+    render() {
+        const { a, b, c } = history.state;
+        this.el.innerHTML = /* html */ `
+    <h1>About Page! </h1>
+    <h2>${a}</h2>
+    <h2>${b}</h2>
+    <h2>${c}</h2>
+    `;
+    }
+}
+exports.default = Home;
+
+},{"../core/sihyonn":"2RWRY","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["f3BSW","gLLPy"], "gLLPy", "parcelRequirea7d1")
 
 //# sourceMappingURL=index.4d6bcbeb.js.map
