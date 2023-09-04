@@ -583,16 +583,15 @@ root.append(new (0, _appDefault.default)().el);
 },{"./App":"2kQhy","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"2kQhy":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-class App {
-    constructor(){
-        //메모리 상에만 만들어지는 div 요소
-        this.el = document.createElement("div");
+var _sihyonn = require("./core/sihyonn");
+class App extends (0, _sihyonn.Component) {
+    render() {
         this.el.textContent = "Hello, world!";
     }
 }
 exports.default = App;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gkKU3":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","./core/sihyonn":"2RWRY"}],"gkKU3":[function(require,module,exports) {
 exports.interopDefault = function(a) {
     return a && a.__esModule ? a : {
         default: a
@@ -622,6 +621,23 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}]},["f3BSW","gLLPy"], "gLLPy", "parcelRequirea7d1")
+},{}],"2RWRY":[function(require,module,exports) {
+/// Component ///
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "Component", ()=>Component);
+class Component {
+    constructor(payload = {}){
+        // 항상 div가 들어오는게 아니기 때문에 구조분해할당으로 내가 원하는 태그를 넣겠다
+        const { tagName = "div" } = payload;
+        this.el = document.createElement(tagName);
+        this.render();
+    }
+    render() {
+    /// ...일단 비워줌 확장해서 사용할때 사용할거
+    }
+}
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["f3BSW","gLLPy"], "gLLPy", "parcelRequirea7d1")
 
 //# sourceMappingURL=index.4d6bcbeb.js.map

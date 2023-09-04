@@ -1,7 +1,8 @@
-export default class App {
-  constructor() {
-    //메모리 상에만 만들어지는 div 요소
-    this.el = document.createElement("div");
+import { Component } from "./core/sihyonn";
+
+// 가져온 컴포넌트 확장하는 개념으로 상속해서 사용
+export default class App extends Component {
+  render() {
     this.el.textContent = "Hello, world!";
   }
 }
